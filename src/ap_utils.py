@@ -13,6 +13,7 @@ import time
 from datetime import datetime
 import fcntl
 import logging
+import pingparser
 
 logger = logging.getLogger("netmon")
 
@@ -55,6 +56,16 @@ def ping(hostname, count=5, timeout=None):
     return ret, output
 
 
+def ping_parsed(hostname, count=5, timeout=None):
+    """
+    Run ping and return the output parsed as a dictionary object
+    """
+    ret, output = ping(hostname, count, timeout)
+    output = str(output)
+    parsedDict = pingparser.parse(output)
+    return ret, parsedDict
+
+
 def check_ping(hostname):
     """
     Check the reachability of a host
@@ -85,11 +96,11 @@ def check_intf(intf, neighbor= None):
     if neighbor is not None:
         ret, output = check_ping(neighbor)
         log = log + output
-        if ret is 0:
+        if (ret == 0):
             return ret, log
     ret, output = run_cmd("ip address list %s" % intf)
     log = log + output
-    if ret is not 0:
+    if (ret != 0):
         return ret, log
 
     if "UP" not in output or "inet " not in output:
@@ -100,7 +111,7 @@ def check_intf(intf, neighbor= None):
     if neighbor is not None:
         ret, output = check_ping(neighbor)
         log = log + output
-        if ret is not 0:
+        if (ret != 0):
             logger.error("Cannot ping neighbor %s" % neighbor)
 
     return ret, log
@@ -112,7 +123,7 @@ def start_iperf_server(proto="tcp", iperf="iperf", timeout=20, port=None,
     Start iperf server with the given protocol, port and a timeout in seconds.
     If additional args are provided, they are also passed to iperf.
     """
-    if timeout is 0:
+    if (timeout == 0):
         # don't timeout
         command = ""
     else:
