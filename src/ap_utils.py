@@ -79,7 +79,6 @@ def check_intf(intf, neighbor= None):
     """
     Check the status of the given network interface.
     If a neighbor is given, try contacting it.
-    If it is wifi interface try resetting it.
     Return the log of the effort.
     """
     log = ""
@@ -88,18 +87,14 @@ def check_intf(intf, neighbor= None):
         log = log + output
         if ret is 0:
             return ret, log
-    ret, output = run_cmd("ifconfig %s" % intf)
+    ret, output = run_cmd("ip address list %s" % intf)
     log = log + output
     if ret is not 0:
         return ret, log
 
-    if "UP" not in output or "inet addr:192.168" not in output:
+    if "UP" not in output or "inet " not in output:
         logger.warning("Interface not up. Cycling interface %s" % intf)
         ret, output = cycle_interface(intf)
-        log = log + output
-    else:
-        # check if it is a wifi interface and if resetting will help
-        ret, output = check_wifi_intf(intf, neighbor)
         log = log + output
 
     if neighbor is not None:
