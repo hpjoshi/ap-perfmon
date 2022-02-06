@@ -86,7 +86,7 @@ def parse(ping_output):
     except:
         minping = avgping = maxping = jitter = 'NaN'
 
-    return {'host'        : host,
+    return {'dest'        : host,
             'sent'        : sent,
             'received'    : received,
             'packet_loss' : packet_loss,

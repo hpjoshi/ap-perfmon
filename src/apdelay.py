@@ -45,6 +45,10 @@ class apdelay:
         Return the output of ping parsed as a dictionary object
         """
         if self.output is not None:
-            self.pDict = pingparser.parse(self.output)
+            try:
+                self.pDict = pingparser.parse(self.output)
+            except:
+                print("Invalid ping output:\n" + self.output)
+                self.pDict = None
         return self.pDict
 
