@@ -44,14 +44,15 @@ def run_cmd(command):
         return err.returncode, err.output
 
 
-def ping(hostname, count=5, timeout=None):
+def ping(hostname, count=5, interval=None, srcip=None):
     """
     Run ping to a host and return output and returncode
     """
-    if timeout is None:
-        command = "ping -c%d %s" % (count, hostname)
-    else:
-        command = "ping -w%d -c%d %s" % (timeout, count, hostname)
+    command = "ping -c%d %s" % (count, hostname)
+    if interval is not None:
+        command = command + " -i%.2f" % (interval)
+    if srcip is not None:
+        command = command + " -I%s" % (srcip)
     ret, output = run_cmd(command)
     return ret, output
 
