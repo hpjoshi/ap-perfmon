@@ -34,6 +34,7 @@ def run_cmd(command):
     try:
         logger.info("Running command: %s" % command)
         output = subprocess.check_output(command, shell=True,
+                                         universal_newlines=True,
                                          stderr=subprocess.STDOUT)
         logger.debug(output)
         return 0, output
@@ -62,7 +63,6 @@ def ping_parsed(hostname, count=5, timeout=None):
     Run ping and return the output parsed as a dictionary object
     """
     ret, output = ping(hostname, count, timeout)
-    output = str(output)
     parsedDict = pingparser.parse(output)
     return ret, parsedDict
 
