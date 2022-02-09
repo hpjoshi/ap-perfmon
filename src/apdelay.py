@@ -8,12 +8,12 @@ class apdelay:
     The pings are repeated count times, and interval seconds are
     the time between each ping packet send.
     """
-    def __init__ (self, destip, srcip=None, count=3, interval=0.2):
+    def __init__ (self, destip, srcip=None, count=3, interval=0.2, pType="ping"):
         self.srcip = srcip
         self.destip = destip
         self.count = count
         self.interval = interval
-        self.pType = "ping"
+        self.pType = pType
         self.output = None
         self.pDict = None
 
@@ -26,8 +26,7 @@ class apdelay:
             command = command + " -i%.2f" % (self.interval)
         if self.srcip is not None:
             command = command + " -I%s" % (self.srcip)
-        ret, output = run_cmd(command)
-        self.output = str(output)
+        ret, self.output = run_cmd(command)
         return ret, self.output
 
 
@@ -48,7 +47,7 @@ class apdelay:
             try:
                 self.pDict = pingparser.parse(self.output)
             except:
-                print("Invalid ping output:\n" + self.output)
+                logger.error("Invalid ping output:\n" + self.output)
                 self.pDict = None
         return self.pDict
 
