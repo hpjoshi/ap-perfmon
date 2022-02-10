@@ -1,6 +1,8 @@
 {
     "expID": 12345,
-    "numRuns": 30,
+    "expType": "latency",
+    "numRuns": 3,
+    "logDir": "/tmp/",
     "verbose": "WARNING",
     "pingRepeat": 10,
     "pingInterval": 0.2,

@@ -15,7 +15,7 @@ import fcntl
 import logging
 import pingparser
 
-logger = logging.getLogger("netmon")
+logger = logging.getLogger("ap_utils")
 
 def get_hostname():
     """

@@ -15,12 +15,12 @@ class explatency:
     """
     Run latency experiment locally.
     """
-    def __init__(self, expid, destips, runs=30, srcips=None,
+    def __init__(self, expid, destips, nruns=30, srcips=None,
                  count=10, interval=0.3, runinterval=0, pktsize=64):
         self.expid = expid
         self.destips = []
         self.srcips = []
-        self.runs = runs
+        self.nruns = nruns
         self.count = count
         self.interval = interval
         self.runinterval = runinterval
@@ -40,17 +40,18 @@ class explatency:
         """
         Start the latency measurement from a given source IP address.
         """
+        logger = self.logger
         for destip in self.destips:
-            for run in range(self.runs):
+            for run in range(self.nruns):
                 ad = apdelay.apdelay(destip, srcip=srcip, count=self.count,
                                      interval=self.interval)
                 ret, out = ad.ping()
                 if ret != 0 :
-                    logger.error("Runid %d: Ping to %s FAILED" % (run, destip))
+                    logger.error("Run %d: Ping to %s FAILED" % (run, destip))
                 else:
-                    logger.info("Runid %d: Ping to %s SUCCESS" % (run, destip))
+                    logger.info("Run %d: Ping to %s SUCCESS" % (run, destip))
                 # record to the experiment logs and results files
-                self.logger.debug(out)
+                logger.debug(out)
                 # parse should return NaN for failed pings
                 parsed = ad.parse()
                 parsed.update({'expid': self.expid, 'runid': run, 'src': srcip,
@@ -58,6 +59,8 @@ class explatency:
                 self.results.append(parsed)
                 # sleep if any
                 if self.runinterval > 0:
+                    logger.debug("Run %d: Sleep for %d seconds before next run" %
+                                 (run, self.runinterval))
                     time.sleep(self.runinterval)
 
     def start(self):
@@ -80,59 +83,21 @@ class experiment:
     Its main job is to provide a consistent logging and result
     collection framework.
     """
-    def __init__(self, expid, logdir, config, exptype="latency",
-                 nruns=30, runinterval=5, verbose="INFO", logger=None):
+    def __init__(self, expid, logdir, config, csvfile, exptype="latency",
+                 nruns=30, runinterval=5, verbose="INFO"):
         self.expid = expid
         self.exptype = exptype
         self.nruns = nruns
         self.logdir = logdir
-        self.csvfile = ""
+        self.csvfile = csvfile
         self.verbose = verbose
+        self.logger = logging.getLogger("apexp")
         self.runinterval = runinterval
         self.name = get_hostname()
         self.config = config
         # keep track of experiment progress
         self.runid = 0
         self.run_starttime = None
-        self.setup_logging()
-        self.setup_csv()
-
-    def setup_logging(self):
-        """
-        Create the log files
-        """
-        filename = "log_%s_%s_%d.txt" % (self.name, self.exptype, self.expid)
-        logfile = os.path.join(self.logdir, filename)
-
-        ## config console logging with default level INFO
-        ch = logging.StreamHandler()
-        verbose = self.verbose
-        if verbose.lower() == "debug":
-            ch.setLevel(logging.DEBUG)
-        elif verbose.lower() == "warning":
-            ch.setLevel(logging.WARNING)
-        elif verbose.lower() == "error":
-            ch.setLevel(logging.ERROR)
-        else:
-            ch.setLevel(logging.INFO)
-
-        formatter = logging.Formatter('[%(name)s] %(levelname)s: %(message)s')
-        ch.setFormatter(formatter)
-        logging.getLogger('').addHandler(ch)
-
-        ## config file logging
-        fh = logging.FileHandler(logfile)
-        fh.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s.%(msecs)03d - [%(name)s] %(levelname)-8s: %(message)s')
-        fh.setFormatter(formatter)
-        logging.getLogger('').addHandler(fh)
-
-    def setup_csv(self):
-        """
-        Create the csv file for logging results
-        """
-        filename = "results_%s_%s_%d.csv" % (self.name, self.exptype, self.expid)
-        self.csvfile = os.path.join(self.logdir, filename)
         
     def get_destips(self, nodes):
         """
@@ -150,8 +115,11 @@ class experiment:
         """
         Start the experiment.
         """
-        logger = logging.getLogger('')
+        logger = self.logger
         logger.info("Preparing %s experiment" %  self.exptype)
+        attrs = vars(self)
+        logger.debug("Experiment parameters:")
+        logger.debug(', '.join("%s: %s" % item for item in attrs.items()))
         if self.exptype == "latency":
             config = self.config
             count = config["pingRepeat"]
@@ -163,8 +131,9 @@ class experiment:
             srcips = None ## Not supported yet
             destips = self.get_destips(nodes)
             exp = explatency(self.expid, destips, srcips=srcips,
-                             runs=self.nruns, count=count, interval=interval,
+                             nruns=self.nruns, count=count, interval=interval,
                              runinterval=runinterval, pktsize=pktsize)
+            print("Starting %s experiment" % self.exptype)
             logger.info("Starting %s experiment" % self.exptype)
             try:
                 res = exp.start()
@@ -175,6 +144,4 @@ class experiment:
 
         else:
             logger.error("Experiment type %s not supported (yet)" % self.exptype)
-
-        #logging.shutdown()
 
