@@ -58,6 +58,29 @@ def init_logging(logfile, verbose):
     return logger
 
 
+def sync_from_client(remote_user, remote_ip, remote_dir, local_dir):
+    cmd = "timeout %d rsync -az %s@%s:%s %s" % (30, remote_user,
+                                                remote_ip, remote_dir, local_dir)
+    ret, output = run_cmd(cmd)
+    logger.debug(output)
+    if ret == 0:
+        logger.info("Success: sync from %s complete", remote_ip)
+    else:
+        logger.error("Fail: sync from %s could not be completed", remote_ip)
+
+
+def run_remote_exp():
+    """
+    Run the experiment on a remote client through ssh
+    """
+    logger.info("Preparing remote experiments")
+    # start a thread for each remote node
+
+    # in each thread start the experiment locally
+    cmd = "ssh %s@%s \"%s\"" % (remote_user, remote_ip, remote_cmd)
+
+    # at the end sync remote logs and results to the master
+    
 
 def main():
     """
@@ -83,6 +106,10 @@ def main():
     #                     help="the time period between each run in seconds")
     parser.add_argument("-d", "--logdir", default="/tmp/nsdi23/",
                         help="the directory used for log files, the file will be rotated every PERIOD minutes")
+    parser.add_argument("-l", "--role", default="local",
+                        help="role for this host: master|client|local")
+    parser.add_argument("-m", "--masterip",
+                        help="ip address of the master if the role is remote client")
     parser.add_argument("conffile",
                         help="the configuration for the experiments, may be superseded by CLI args")
     args = parser.parse_args()
@@ -97,18 +124,24 @@ def main():
     logdir = config["logDir"]
     exptype = config["expType"]
 
+    if role == "client" or  role == "local":
+        logdir = os.path.join(logdir, myname)
+    print("Creating log directory if it doesn't exist: %s" % logdir)
+    ret, output = run_cmd("mkdir -p %s" % logdir)
     logfile, csvfile = get_filenames(expid, exptype, logdir)
     logger = init_logging(logfile, "info")
 
     print("Prepare experiment")
     logger.info("Prepare experiment")
-    exp = apexp.experiment(expid, logdir, config, csvfile, nruns=nruns)
 
-    print("Start experiment")
-    logger.info("Start experiment")
-    exp.start()
-
-    logger.info("End experiment")
+    if role == "master":
+        run_remote_exp(expid, logdir, config)
+    else:
+        exp = apexp.experiment(expid, logdir, config, csvfile, nruns=nruns)
+        print("Start experiment")
+        logger.info("Start experiment")
+        exp.start()
+        logger.info("End experiment")
 
 
 if __name__ == "__main__":
