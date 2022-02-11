@@ -16,7 +16,7 @@ class explatency:
     Run latency experiment locally.
     """
     def __init__(self, expid, destips, nruns=30, srcips=None,
-                 count=10, interval=0.3, runinterval=0, pktsize=64):
+                 count=10, interval=0.3, runinterval=0, pktsizes):
         self.expid = expid
         self.destips = []
         self.srcips = []
@@ -24,7 +24,7 @@ class explatency:
         self.count = count
         self.interval = interval
         self.runinterval = runinterval
-        self.pktsize = pktsize
+        self.pktsizes = pktsizes
         self.results = []
         self.logger = logging.getLogger("latency")
         if isinstance(destips, list):
@@ -42,26 +42,27 @@ class explatency:
         """
         logger = self.logger
         for destip in self.destips:
-            for run in range(self.nruns):
-                ad = apdelay.apdelay(destip, srcip=srcip, count=self.count,
-                                     interval=self.interval)
-                ret, out = ad.ping()
-                if ret != 0 :
-                    logger.error("Run %d: Ping to %s FAILED" % (run, destip))
-                else:
-                    logger.info("Run %d: Ping to %s SUCCESS" % (run, destip))
-                # record to the experiment logs and results files
-                logger.debug(out)
-                # parse should return NaN for failed pings
-                parsed = ad.parse()
-                parsed.update({'expid': self.expid, 'runid': run, 'src': srcip,
-                               'interval': self.interval, 'pktsize': self.pktsize})
-                self.results.append(parsed)
-                # sleep if any
-                if self.runinterval > 0:
-                    logger.debug("Run %d: Sleep for %d seconds before next run" %
-                                 (run, self.runinterval))
-                    time.sleep(self.runinterval)
+            for pktsize in self.pktsizes:
+                for run in range(self.nruns):
+                    ad = apdelay.apdelay(destip, srcip=srcip, count=self.count,
+                                         interval=self.interval)
+                    ret, out = ad.ping()
+                    if ret != 0 :
+                        logger.error("Run %d: Ping to %s FAILED" % (run, destip))
+                    else:
+                        logger.info("Run %d: Ping to %s SUCCESS" % (run, destip))
+                        # record to the experiment logs and results files
+                        logger.debug(out)
+                        # parse should return NaN for failed pings
+                        parsed = ad.parse()
+                        parsed.update({'expid': self.expid, 'runid': run, 'src': srcip,
+                                       'interval': self.interval, 'pktsize': self.pktsize})
+                        self.results.append(parsed)
+                        # sleep if any
+                        if self.runinterval > 0:
+                            logger.debug("Run %d: Sleep for %d seconds before next run" %
+                                         (run, self.runinterval))
+                            time.sleep(self.runinterval)
 
     def start(self):
         """
@@ -132,7 +133,7 @@ class experiment:
             destips = self.get_destips(nodes)
             exp = explatency(self.expid, destips, srcips=srcips,
                              nruns=self.nruns, count=count, interval=interval,
-                             runinterval=runinterval, pktsize=pktsize)
+                             runinterval=runinterval, pktsize=pktsizes)
             print("Starting %s experiment" % self.exptype)
             logger.info("Starting %s experiment" % self.exptype)
             try:
