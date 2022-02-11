@@ -100,15 +100,39 @@ class experiment:
         self.runid = 0
         self.run_starttime = None
         
-    def get_destips(self, nodes):
+    def get_myips(self):
         """
-        Given a list of nodes, take out IP addresses belonging to us
+        Return the list of IP addresses assigned to this host's interfaces
         """
-        myips = run_cmd("hostname -I")[1].strip()
+        res, ips = run_cmd("hostname -I")
+        if res != 0:
+            raise Exception("Could not get host IP addresses:\n" + ips)
+        myips = ips.strip().split(' ')
+        return myips
+
+    def get_srcips(self, myips, nodes):
+        """
+        Return the list of IP addresses on this host that are also part of
+        the experiment.
+        """
+        srcips = set(myips).intersection(set(nodes))
+        return list(srcips)
+
+    def get_destips(self, nodes, srcips=None, nodup=False):
+        """
+        Given a list of nodes, take out IP addresses belonging to us.
+        If nodup is True, then only add "higher" IP addresses than the srcips
+        """
         destips = []
-        for node in nodes:
-            if node not in myips:
-                destips.append(node)
+        if srcips is None:
+            self.logger.warning("No srcips given, using all nodes as destination")
+            return nodes
+
+        desips = list(set(nodes) - set(srcips))
+        if nodup == True:
+            srcip = srcips[0] ## can only compare against one srcip
+            filtered = [ip for ip in destips if ip > srcip]
+            destips = filtered
         return destips
 
         
@@ -126,11 +150,11 @@ class experiment:
             count = config["pingRepeat"]
             interval = config["pingInterval"]
             pktsizes = config["pktSizes"]
-            pktsize = pktsizes[0]
             runinterval = config["runInterval"]
             nodes = config["nodes"]
-            srcips = None ## Not supported yet
-            destips = self.get_destips(nodes)
+            myips = self.get_myips()
+            srcips = self.get_srcips(myips, nodes)
+            destips = self.get_destips(nodes, srcips, nodup=True)
             exp = explatency(self.expid, destips, srcips=srcips,
                              nruns=self.nruns, count=count, interval=interval,
                              runinterval=runinterval, pktsize=pktsizes)
