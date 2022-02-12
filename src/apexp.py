@@ -16,7 +16,7 @@ class explatency:
     Run latency experiment locally.
     """
     def __init__(self, expid, destips, nruns=30, srcips=None,
-                 count=10, interval=0.3, runinterval=0, pktsizes):
+                 count=10, interval=0.3, runinterval=0, pktsizes=[64]):
         self.expid = expid
         self.destips = []
         self.srcips = []
