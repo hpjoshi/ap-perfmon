@@ -22,6 +22,7 @@ from ap_utils import *
 logger = logging.getLogger('')
 
 def get_logdir(config, role):
+    myname = get_hostname()
     logdir = config["logDir"]
     if role == "worker":
         logdir = os.path.join(logdir, myname)
@@ -151,7 +152,6 @@ def main():
     parser.add_argument("conffile",
                         help="the configuration for the experiments, may be superseded by CLI args")
     args = parser.parse_args()
-    myname = get_hostname()
 
     # Read config file parameters
     print("Opening config file %s" % args.conffile)
