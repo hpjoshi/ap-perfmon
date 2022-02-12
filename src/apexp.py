@@ -157,7 +157,7 @@ class experiment:
             destips = self.get_destips(nodes, srcips, nodup=True)
             exp = explatency(self.expid, destips, srcips=srcips,
                              nruns=self.nruns, count=count, interval=interval,
-                             runinterval=runinterval, pktsize=pktsizes)
+                             runinterval=runinterval, pktsizes=pktsizes)
             print("Starting %s experiment" % self.exptype)
             logger.info("Starting %s experiment" % self.exptype)
             try:
