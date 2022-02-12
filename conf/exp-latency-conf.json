@@ -2,16 +2,16 @@
     "expID": 12345,
     "expType": "latency",
     "numRuns": 3,
-    "logDir": "/tmp/",
+    "logDir": "/home/hpjoshi/nsdi23",
     "verbose": "WARNING",
     "pingRepeat": 10,
     "pingInterval": 0.2,
     "runInterval": 5,
     "pktSizes": [64],
-    "nodes": ["www.google.com",
-              "www.amazon.com"],
-    "neighbor": "192.168.8.2",
-    "role": "server",
-    "iperfTime": 10,
-    "udpBW": 20
+    "role": "worker",
+    "nodes": ["152.14.188.23",
+              "152.14.188.24"],
+    "remoteUser": "hpjoshi",
+    "remoteConfFile": "conf/exp-latency-conf.json",
+    "gitDir": "/home/hpjoshi/nsdi23/ap-perfmon"
 }

@@ -12,11 +12,20 @@ import argparse
 import os
 import sys
 import json
+import concurrent.futures
 import logging
 import logging.handlers
 from datetime import datetime
 import apexp
 from ap_utils import *
+
+logger = logging.getLogger('')
+
+def get_logdir(config, role):
+    logdir = config["logDir"]
+    if role == "worker":
+        logdir = os.path.join(logdir, myname)
+    return logdir
 
 
 def get_filenames(expid, exptype, logdir):
@@ -30,7 +39,6 @@ def get_filenames(expid, exptype, logdir):
 
 
 def init_logging(logfile, verbose):
-    logger = logging.getLogger('')
     ## config console logging with default level INFO
     ch = logging.StreamHandler(sys.stdout)
     if verbose.lower() == "debug":
@@ -69,17 +77,47 @@ def sync_from_client(remote_user, remote_ip, remote_dir, local_dir):
         logger.error("Fail: sync from %s could not be completed", remote_ip)
 
 
-def run_remote_exp():
+def run_one_remote_exp(remote_ip, config):
+    """
+    Run the same experiment on a remote node
+    """
+    remote_user = config["remoteUser"]
+    gitdir = config["gitDir"]
+    remoteConfFile = config["remoteConfFile"]
+    # in each thread start the experiment locally
+    remote_cmd = "%s -l worker %s" % (os.path.join(gitdir, "src/run_exp.py"),
+                                      os.path.join(gitdir, remoteConfFile))
+    ssh_opts = "-o ConnectTimeout=10 -o StrictHostKeyChecking=no"
+    cmd = "ssh %s %s@%s \"%s\"" % (ssh_opts, remote_user, remote_ip, remote_cmd)
+    logger.info("Node %s: sending run experiment command: \"%s\"" % (remote_ip, cmd))
+    ret, output = run_cmd(cmd)
+    if ret != 0:
+        logger.error("Experiment failed with:\n%s" % output)
+    # at the end sync remote logs and results to the master
+    local_logdir = get_logdir(config, "master")
+    remote_dir = get_logdir(config, "worker")
+    sync_from_client(remote_user, remote_ip, remote_dir, local_logdir)
+    return 0
+
+
+def run_remote_exp(config):
     """
     Run the experiment on a remote client through ssh
     """
     logger.info("Preparing remote experiments")
+    nodes = config["nodes"]
     # start a thread for each remote node
-
-    # in each thread start the experiment locally
-    cmd = "ssh %s@%s \"%s\"" % (remote_user, remote_ip, remote_cmd)
-
-    # at the end sync remote logs and results to the master
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # create a dict of future to the node
+        future_to_node = {executor.submit(run_one_remote_exp, node, config): node for node in nodes}
+        for future in concurrent.futures.as_completed(future_to_node):
+            node = future_to_node[future]
+            try:
+                ret = future.result()
+            except Exception as e:
+                logger.error("Node %s: generated exception: %s" % (node, e))
+            else:
+                logger.info("Node %s: experiment complete")
     
 
 def main():
@@ -106,8 +144,8 @@ def main():
     #                     help="the time period between each run in seconds")
     parser.add_argument("-d", "--logdir", default="/tmp/nsdi23/",
                         help="the directory used for log files, the file will be rotated every PERIOD minutes")
-    parser.add_argument("-l", "--role", default="local",
-                        help="role for this host: master|client|local")
+    parser.add_argument("-l", "--role", default="worker",
+                        help="role for this host: master|worker")
     parser.add_argument("-m", "--masterip",
                         help="ip address of the master if the role is remote client")
     parser.add_argument("conffile",
@@ -121,11 +159,10 @@ def main():
         config = json.load(cf)
     nruns = config["numRuns"]
     expid = config["expID"]
-    logdir = config["logDir"]
     exptype = config["expType"]
+    role = args.role
+    logdir = get_logdir(config, role)
 
-    if role == "client" or  role == "local":
-        logdir = os.path.join(logdir, myname)
     print("Creating log directory if it doesn't exist: %s" % logdir)
     ret, output = run_cmd("mkdir -p %s" % logdir)
     logfile, csvfile = get_filenames(expid, exptype, logdir)
@@ -135,7 +172,9 @@ def main():
     logger.info("Prepare experiment")
 
     if role == "master":
-        run_remote_exp(expid, logdir, config)
+        print("Start remote experiment")
+        run_remote_exp(config)
+        print("End remote experiment")
     else:
         exp = apexp.experiment(expid, logdir, config, csvfile, nruns=nruns)
         print("Start experiment")
