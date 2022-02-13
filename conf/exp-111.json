@@ -1,0 +1,19 @@
+{
+    "expID": 111,
+    "expType": "latency",
+    "numRuns": 3,
+    "logDir": "/home/aerpawops/nsdi23",
+    "verbose": "WARNING",
+    "pingRepeat": 10,
+    "pingInterval": 0.2,
+    "runInterval": 5,
+    "pktSizes": [64],
+    "role": "worker",
+    "nodes": ["152.14.188.23",
+              "152.14.188.24"],
+    "pairwiseNoDuplication": true,
+    "remoteUser": "aerpawops",
+    "remoteConfFile": "conf/exp-111.json",
+    "gitMasterDir": "/home/aerpawops/nsdi23/ap-perfmon",
+    "gitDir": "/home/aerpawops/nsdi23/ap-perfmon"
+}
