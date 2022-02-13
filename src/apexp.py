@@ -121,9 +121,12 @@ class experiment:
         Return the list of IP addresses on this host that are also part of
         the experiment.
         """
-        srcips = set(myips).intersection(set(nodes))
-        srcips = list(srcips)
-        self.logger.debug("Source IP: " + str(srcips))
+        if len(myips) == 1:
+            srcips = myips
+        else:
+            srcips = set(myips).intersection(set(nodes))
+            srcips = list(srcips)
+        self.logger.debug("Source IPs: " + str(srcips))
         return srcips
 
     def get_destips(self, nodes, srcips=None, nodup=False):
@@ -131,15 +134,17 @@ class experiment:
         Given a list of nodes, take out IP addresses belonging to us.
         If nodup is True, then only add "higher" IP addresses than the srcips
         """
-        destips = []
         if srcips is None or len(srcips) == 0:
             self.logger.info("No srcips given, using all nodes as destination")
             return nodes
 
-        desips = list(set(nodes) - set(srcips))
+        destips = list(set(nodes) - set(srcips))
         if nodup == True and len(srcips) > 0:
             srcip = srcips[0] ## can only compare against one srcip
             filtered = [ip for ip in destips if ip > srcip]
+            self.logger.debug("To eliminate pairwise duplication from srcip %s:" % srcip)
+            self.logger.debug("  Original destips: " + str(destips))
+            self.logger.debug("  Filtered destips: " + str(filtered))
             destips = filtered
         return destips
 
@@ -160,9 +165,10 @@ class experiment:
             pktsizes = config["pktSizes"]
             runinterval = config["runInterval"]
             nodes = config["nodes"]
+            nodup = config["pairwiseNoDuplication"]
             myips = self.get_myips()
             srcips = self.get_srcips(myips, nodes)
-            destips = self.get_destips(nodes, srcips, nodup=True)
+            destips = self.get_destips(nodes, srcips, nodup=nodup)
             exp = explatency(self.expid, destips, srcips=srcips,
                              nruns=self.nruns, count=count, interval=interval,
                              runinterval=runinterval, pktsizes=pktsizes)

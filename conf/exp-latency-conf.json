@@ -11,6 +11,7 @@
     "role": "worker",
     "nodes": ["152.14.188.23",
               "152.14.188.24"],
+    "pairwiseNoDuplication": true,
     "remoteUser": "hpjoshi",
     "remoteConfFile": "conf/exp-latency-conf.json",
     "gitDir": "/home/hpjoshi/nsdi23/ap-perfmon"
