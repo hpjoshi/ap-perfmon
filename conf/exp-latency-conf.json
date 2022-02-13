@@ -14,5 +14,6 @@
     "pairwiseNoDuplication": true,
     "remoteUser": "hpjoshi",
     "remoteConfFile": "conf/exp-latency-conf.json",
+    "gitMasterDir": "/home/hpjoshi/nsdi23/ap-perfmon",
     "gitDir": "/home/hpjoshi/nsdi23/ap-perfmon"
 }
