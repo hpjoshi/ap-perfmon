@@ -14,7 +14,7 @@ The ap-perfmon experiment framework can be used in a `master` or a `worker` mode
 
 ### Master Mode
 - Clone this repository to the `master` node, a node from where all worker nodes can be logged into with ssh.
-- Create a json config file describing the experiment, based on examples in the conf directory of this repo.
+- Create a json config file describing the experiment, based on examples in the conf directory of this repo. **See README file in conf directory.**
 - Commit and push the experiment config file to this repo in the conf directory.
 - Start the experiment with `run_exp.py` specifying role as `master`. For example, from the repo root directory:
 ``` shell
@@ -24,7 +24,7 @@ src/run_exp.py conf/<experiment-config-json-file> -l master
 
 ### Worker Mode
 - Clone this repository to the `worker` node.
-- Create a json config file describing the experiment, based on examples in the conf directory of this repo.
+- Create a json config file describing the experiment, based on examples in the conf directory of this repo. **See README file in conf directory.**
 - [Optional, but recommended] Commit and push the experiment config file to this repo in the conf directory.
 - Start the experiment with `run_exp.py`. The default role is `worker` so the role does not have to be specified. For example, from the repo root directory:
 ``` shell
