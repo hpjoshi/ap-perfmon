@@ -11,7 +11,7 @@
     "role": "worker",
     "nodes": ["152.14.188.23",
               "152.14.188.24"],
-    "pairwiseNoDuplication": true,
+    "pairwiseNoDuplication": false,
     "remoteUser": "aerpawops",
     "remoteConfFile": "conf/exp-111.json",
     "gitMasterDir": "/home/aerpawops/nsdi23/ap-perfmon",
