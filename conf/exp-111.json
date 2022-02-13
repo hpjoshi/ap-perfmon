@@ -2,7 +2,7 @@
     "expID": 111,
     "expType": "latency",
     "numRuns": 3,
-    "logDir": "/home/aerpawops/nsdi23",
+    "logDir": "/home/aerpawops/nsdi23/results",
     "verbose": "WARNING",
     "pingRepeat": 10,
     "pingInterval": 0.2,

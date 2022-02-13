@@ -22,10 +22,7 @@ from ap_utils import *
 logger = logging.getLogger('')
 
 def get_logdir(config, role):
-    myname = get_hostname()
     logdir = config["logDir"]
-    if role == "worker":
-        logdir = os.path.join(logdir, myname)
     return logdir
 
 
@@ -126,8 +123,8 @@ def run_remote_exp(config):
             except Exception as e:
                 logger.error("Node %s: generated exception: %s" % (node, e))
             else:
-                logger.info("Node %s: experiment complete")
-    
+                logger.info("Node %s: experiment complete" % node)
+
 
 def main():
     """
