@@ -6,7 +6,7 @@ Contains the following class:
 
 import os
 import apdelay
-import pandas as pd
+import csv
 from ap_utils import *
 
 EXPTYPES = ["latency", "provisioning"]
@@ -15,9 +15,10 @@ class explatency:
     """
     Run latency experiment locally.
     """
-    def __init__(self, expid, destips, nruns=30, srcips=None,
+    def __init__(self, expid, csvfile, destips, nruns=30, srcips=None,
                  count=10, interval=0.3, runinterval=0, pktsizes=[64]):
         self.expid = expid
+        self.csvfile = csvfile
         self.destips = []
         self.srcips = []
         self.nruns = nruns
@@ -26,6 +27,7 @@ class explatency:
         self.runinterval = runinterval
         self.pktsizes = pktsizes
         self.results = []
+        self.reswriter = None
         self.logger = logging.getLogger("latency")
         if isinstance(destips, list):
             self.destips.extend(destips)
@@ -59,6 +61,7 @@ class explatency:
                         parsed.update({'expid': self.expid, 'runid': run, 'srcip': srcip,
                                        'interval': self.interval, 'pktsize': self.pktsizes,
                                        'hostname': hostname})
+                        self.reswriter.writerow(parsed)
                         self.results.append(parsed)
                         # sleep if any
                         if self.runinterval > 0:
@@ -73,11 +76,18 @@ class explatency:
         attrs = vars(self)
         self.logger.debug("Explatency parameters:")
         self.logger.debug(', '.join("%s: %s" % item for item in attrs.items()))
-        if len(self.srcips) == 0:
-            self.start_from()
-        else:
-            for srcip in self.srcips:
-                self.start_from(srcip)
+        # write to csv as we do each run
+        resfields = ['expid', 'hostname', 'srcip', 'dest', 'interval',
+                     'pktsize', 'runid', 'sent', 'received', 'packet_loss',
+                     'minping', 'avgping', 'maxping','jitter']
+        with open(self.csvfile, 'w') as cf:
+            self.reswriter = csv.DictWriter(cf, fieldnames=resfields)
+            self.reswriter.writeheader()
+            if len(self.srcips) == 0:
+                self.start_from()
+            else:
+                for srcip in self.srcips:
+                    self.start_from(srcip)
         return self.results
 
 
@@ -104,7 +114,7 @@ class experiment:
         # keep track of experiment progress
         self.runid = 0
         self.run_starttime = None
-        
+
     def get_myips(self):
         """
         Return the list of IP addresses assigned to this host's interfaces
@@ -148,7 +158,7 @@ class experiment:
             destips = filtered
         return destips
 
-        
+
     def start(self):
         """
         Start the experiment.
@@ -169,18 +179,15 @@ class experiment:
             myips = self.get_myips()
             srcips = self.get_srcips(myips, nodes)
             destips = self.get_destips(nodes, srcips, nodup=nodup)
-            exp = explatency(self.expid, destips, srcips=srcips,
+            exp = explatency(self.expid, self.csvfile, destips, srcips=srcips,
                              nruns=self.nruns, count=count, interval=interval,
                              runinterval=runinterval, pktsizes=pktsizes)
             print("Starting %s experiment" % self.exptype)
             logger.info("Starting %s experiment" % self.exptype)
             try:
                 res = exp.start()
-                df = pd.DataFrame(res)
-                df.to_csv(self.csvfile)
             except Exception as e:
                 logger.error("Failed to complete experiment. Error:\n" + e)
 
         else:
             logger.error("Experiment type %s not supported (yet)" % self.exptype)
-
