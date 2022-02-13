@@ -10,7 +10,7 @@ This repository contains the network performance measurement tools for AERPAW.
 - Network provisioning and decommisioning time
 
 ## How-To
-The ap-perfmon experiment framework can be used in a `master` or a `worker` mode. The `worker` mode runs the experiments on the local host and stores the logs and results of the experiment locally as well. The `master` mode allows starting experiments remotely on the specified `workers`, and then copy over the logs and results to the specified directory on the master.
+The ap-perfmon experiment framework can be used in a `master` or a `worker` mode. The `worker` mode runs the experiments on the local host and stores the logs and results of the experiment locally as well. The `master` mode allows starting experiments remotely on the specified `workers`, and then copy over the logs and results to the specified directory on the `master`. In addition, the `master` mode also prepares the `worker` nodes by cloning this git repo to the specified directory, or if the git repo already exists then pulls in the latest code. It is recommended to use this mode for conducting experiments.
 
 ### Master Mode
 - Clone this repository to the `master` node, a node from where all worker nodes can be logged into with ssh.
