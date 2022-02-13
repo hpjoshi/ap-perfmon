@@ -41,6 +41,7 @@ class explatency:
         Start the latency measurement from a given source IP address.
         """
         logger = self.logger
+        hostname = get_hostname()
         for destip in self.destips:
             for pktsize in self.pktsizes:
                 for run in range(self.nruns):
@@ -55,8 +56,9 @@ class explatency:
                         logger.debug(out)
                         # parse should return NaN for failed pings
                         parsed = ad.parse()
-                        parsed.update({'expid': self.expid, 'runid': run, 'src': srcip,
-                                       'interval': self.interval, 'pktsize': self.pktsize})
+                        parsed.update({'expid': self.expid, 'runid': run, 'srcip': srcip,
+                                       'interval': self.interval, 'pktsize': self.pktsizes,
+                                       'hostname': hostname})
                         self.results.append(parsed)
                         # sleep if any
                         if self.runinterval > 0:
@@ -68,6 +70,9 @@ class explatency:
         """
         Start the latency measurement experiment.
         """
+        attrs = vars(self)
+        self.logger.debug("Explatency parameters:")
+        self.logger.debug(', '.join("%s: %s" % item for item in attrs.items()))
         if len(self.srcips) == 0:
             self.start_from()
         else:
@@ -108,6 +113,7 @@ class experiment:
         if res != 0:
             raise Exception("Could not get host IP addresses:\n" + ips)
         myips = ips.strip().split(' ')
+        self.logger.debug("My IPs: " + str(myips))
         return myips
 
     def get_srcips(self, myips, nodes):
@@ -116,7 +122,9 @@ class experiment:
         the experiment.
         """
         srcips = set(myips).intersection(set(nodes))
-        return list(srcips)
+        srcips = list(srcips)
+        self.logger.debug("Source IP: " + str(srcips))
+        return srcips
 
     def get_destips(self, nodes, srcips=None, nodup=False):
         """
@@ -124,12 +132,12 @@ class experiment:
         If nodup is True, then only add "higher" IP addresses than the srcips
         """
         destips = []
-        if srcips is None:
-            self.logger.warning("No srcips given, using all nodes as destination")
+        if srcips is None or len(srcips) == 0:
+            self.logger.info("No srcips given, using all nodes as destination")
             return nodes
 
         desips = list(set(nodes) - set(srcips))
-        if nodup == True:
+        if nodup == True and len(srcips) > 0:
             srcip = srcips[0] ## can only compare against one srcip
             filtered = [ip for ip in destips if ip > srcip]
             destips = filtered
