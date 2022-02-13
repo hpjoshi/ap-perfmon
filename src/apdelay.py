@@ -16,6 +16,10 @@ class apdelay:
         self.pType = pType
         self.output = None
         self.pDict = None
+        self.logger = logging.getLogger("apdelay")
+        attrs = vars(self)
+        self.logger.debug("Apdelay parameters:")
+        self.logger.debug(', '.join("%s: %s" % item for item in attrs.items()))
 
     def ping(self):
         """
@@ -47,7 +51,7 @@ class apdelay:
             try:
                 self.pDict = pingparser.parse(self.output)
             except:
-                logger.error("Invalid ping output:\n" + self.output)
+                self.logger.error("Invalid ping output:\n" + self.output)
                 self.pDict = None
         return self.pDict
 
