@@ -173,6 +173,7 @@ def main():
     print("Creating log directory if it doesn't exist: %s" % logdir)
     ret, output = run_cmd("mkdir -p %s" % logdir)
     logfile, csvfile = get_filenames(expid, exptype, logdir)
+    print("Logging to file: %s" % logfile)
     logger = init_logging(logfile, "info")
 
     print("Prepare experiment")
@@ -183,7 +184,7 @@ def main():
         run_remote_exp(config)
         print("End remote experiment")
     else:
-        exp = apexp.experiment(expid, logdir, config, csvfile, nruns=nruns)
+        exp = apexp.experiment(expid, logdir, config, csvfile, nruns=nruns, exptype=exptype)
         print("Start experiment")
         logger.info("Start experiment")
         exp.start()
