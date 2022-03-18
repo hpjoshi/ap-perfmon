@@ -36,12 +36,12 @@ class expruntime:
         for run in range(self.nruns):
             for cmd in self.commands:
                 ## Careful what you allow to run as the given user
-                logger.debug("Starting command: %s" % (cmd))
+                logger.info("Starting command: %s" % (cmd))
                 start_time = time.time()
                 ret, output = run_cmd(cmd)
                 end_time = time.time()
                 elapsed_time = end_time - start_time
-                logger.debug("Completed command in %d seconds" % (elapsed_time))
+                logger.info("Completed command in %d seconds" % (elapsed_time))
 
 
 class explatency:
