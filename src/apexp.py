@@ -228,5 +228,11 @@ class experiment:
             commands = config["commands"]
             exp = expruntime(self.expid, self.csvfile, commands, nruns=1,
                              interval=0, config=config)
+            print("Starting %s experiment" % self.exptype)
+            logger.info("Starting %s experiment" % self.exptype)
+            try:
+                res = exp.start()
+            except Exception as e:
+                logger.error("Failed to complete experiment. Error:\n" + e)
         else:
             logger.error("Experiment type %s not supported (yet)" % self.exptype)
