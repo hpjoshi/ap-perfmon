@@ -5,11 +5,44 @@ Contains the following class:
 """
 
 import os
+import time
 import apdelay
 import csv
 from ap_utils import *
 
-EXPTYPES = ["latency", "provisioning"]
+EXPTYPES = ["latency", "runtime"]
+
+class expruntime:
+    """
+    Run a given set of commands/scripts and time them.
+    This will be used to measure the runtimes for experiment provisioning scripts.
+    """
+    def __init__(self, expid, csvfile, commands, nruns=1,
+                 interval=1, config=None):
+        self.expid = expid
+        self.csvfile = csvfile
+        self.commands = commands
+        self.nruns = nruns
+        self.interval = interval
+        self.logger = logging.getLogger("runtime")
+        self.config = config
+
+    def start(self):
+        """
+        Start the provisioning experiment and measure runtime for each script
+        """
+        logger = self.logger
+        hostname = get_hostname()
+        for run in range(self.nruns):
+            for cmd in self.commands:
+                ## Careful what you allow to run as the given user
+                logger.debug("Starting command: %s" % (cmd))
+                start_time = time.time()
+                ret, output = run_cmd(cmd)
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                logger.debug("Completed command in %d seconds" % (elapsed_time))
+
 
 class explatency:
     """
@@ -165,6 +198,7 @@ class experiment:
         """
         logger = self.logger
         logger.info("Preparing %s experiment" %  self.exptype)
+        # Print experiment parameters (attributes of self object)
         attrs = vars(self)
         logger.debug("Experiment parameters:")
         logger.debug(', '.join("%s: %s" % item for item in attrs.items()))
@@ -189,5 +223,10 @@ class experiment:
             except Exception as e:
                 logger.error("Failed to complete experiment. Error:\n" + e)
 
+        elif self.exptype == "runtime":
+            config = self.config
+            commands = config["commands"]
+            exp = expruntime(self.expid, self.csvfile, commands, nruns=1,
+                             interval=0, config=config)
         else:
             logger.error("Experiment type %s not supported (yet)" % self.exptype)

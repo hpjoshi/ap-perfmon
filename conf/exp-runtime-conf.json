@@ -1,0 +1,17 @@
+{
+    "expID": 12345,
+    "expType": "runtime",
+    "numRuns": 1,
+    "commands": ["perfom-ap-vpn-server-gen-keys.exp XM-X0050",
+                 "perfom-ap-vpn-server-get-client-profiles.exp XM-X0050",
+                 "ap-instantiate-virtual-experimentC1.sh -b 50 0 22"],
+    "logDir": "/home/hpjoshi/nsdi23",
+    "verbose": "WARNING",
+    "role": "worker",
+    "nodes": ["152.14.188.23",
+              "152.14.188.24"],
+    "remoteUser": "hpjoshi",
+    "sshKey": "~/.ssh/id_rsa",
+    "gitMasterDir": "/home/hpjoshi/nsdi23/ap-perfmon",
+    "gitDir": "/home/hpjoshi/nsdi23/ap-perfmon"
+}
