@@ -83,6 +83,8 @@ def run_one_remote_exp(remote_ip, config):
     gitdir = config["gitDir"]
     remoteConfFile = config["remoteConfFile"]
     ssh_opts = "-o ConnectTimeout=10 -o StrictHostKeyChecking=no"
+    if "sshKey" in config:
+        ssh_opts = ssh_opts + " -i %s" % (config["sshKey"])
     # prepare each node using local script
     gitmasterdir = config["gitMasterDir"]
     gitbase = os.path.basename(os.path.normpath(gitmasterdir))

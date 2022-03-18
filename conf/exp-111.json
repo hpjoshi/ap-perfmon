@@ -13,6 +13,7 @@
               "152.14.188.24"],
     "pairwiseNoDuplication": false,
     "remoteUser": "aerpawops",
+    "sshKey": "/home/aerpawops/.ssh/id_rsa",
     "remoteConfFile": "conf/exp-111.json",
     "gitMasterDir": "/home/aerpawops/nsdi23/ap-perfmon",
     "gitDir": "/home/aerpawops/nsdi23/ap-perfmon"
