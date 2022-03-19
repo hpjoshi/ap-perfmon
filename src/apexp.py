@@ -18,14 +18,15 @@ class expruntime:
     This will be used to measure the runtimes for experiment provisioning scripts.
     """
     def __init__(self, expid, csvfile, commands, nruns=1,
-                 interval=1, config=None):
+                 runinterval=1, config=None):
         self.expid = expid
         self.csvfile = csvfile
         self.commands = commands
         self.nruns = nruns
-        self.interval = interval
+        self.runinterval = runinterval
         self.logger = logging.getLogger("runtime")
         self.config = config
+        self.reswriter = None
 
     def start(self):
         """
@@ -33,15 +34,26 @@ class expruntime:
         """
         logger = self.logger
         hostname = get_hostname()
-        for run in range(self.nruns):
-            for cmd in self.commands:
-                ## Careful what you allow to run as the given user
-                logger.info("Starting command: %s" % (cmd))
-                start_time = time.time()
-                ret, output = run_cmd(cmd)
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                logger.info("Completed command in %d seconds" % (elapsed_time))
+        # write to csv as we do each run
+        resfields = ['expid', 'hostname', 'command', 'runid', 'runinterval', 'elapsed_time']
+        with open(self.csvfile, 'w') as cf:
+            self.reswriter = csv.DictWriter(cf, fieldnames=resfields)
+            self.reswriter.writeheader()
+            for run in range(self.nruns):
+                for cmd in self.commands:
+                    ## Careful what you allow to run as the given user
+                    logger.info("Starting command: %s" % (cmd))
+                    start_time = time.time()
+                    ret, output = run_cmd(cmd)
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    logger.info("Completed command in %d seconds" % (elapsed_time))
+                    # update results
+                    results = {'expid': self.expid, 'hostname': hostname, 'command': cmd,
+                               'runid': run, 'runinterval': self.runinterval,
+                               'elapsed_time': elapsed_time}
+                    self.reswriter.writerow(results)
+                    time.sleep(self.runinterval)
 
 
 class explatency:
@@ -226,8 +238,12 @@ class experiment:
         elif self.exptype == "runtime":
             config = self.config
             commands = config["commands"]
-            exp = expruntime(self.expid, self.csvfile, commands, nruns=1,
-                             interval=0, config=config)
+            if "runInterval" in config:
+                runinterval = config["runInterval"]
+            else:
+                runinterval = self.runinterval
+            exp = expruntime(self.expid, self.csvfile, commands, nruns=self.nruns,
+                             runinterval=runinterval, config=config)
             print("Starting %s experiment" % self.exptype)
             logger.info("Starting %s experiment" % self.exptype)
             try:
