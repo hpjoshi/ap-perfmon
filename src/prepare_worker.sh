@@ -28,7 +28,7 @@ if [ "$#" -ge 4 ]
 then
     GIT_REMOTE="$4"
 else
-    GIT_REMOTE="https://github.com/aerpawops/ap-perfmon.git"
+    GIT_REMOTE="git@github.com:aerpawops/ap-perfmon.git"
 fi
 
 if [ -d "${GIT_FULLPATH}" ]

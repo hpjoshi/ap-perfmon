@@ -21,7 +21,7 @@ The example below contains field names, example values, and explanation
     "pairwiseNoDuplication": false, // Do not duplicate for pair-wise experiments if this is set to `true`
     "remoteUser": "aerpawops", // Username for ssh
     "remoteConfFile": "conf/exp-111.json", // Config file for this experiment, used for remote experiments
-    "gitRemote": "https://github.com/aerpawops/ap-perfmon.git", // URL for the git remote repository. If not specified, the default from src/prepare_worker.sh is used.
+    "gitRemote": "git@github.com:aerpawops/ap-perfmon.git", // URL for the git remote repository. If not specified, the default from src/prepare_worker.sh is used.
     "gitMasterDir": "/home/aerpawops/nsdi23/ap-perfmon", // Git directory on the `master`
     "gitDir": "/home/aerpawops/nsdi23/ap-perfmon" // Git directory for the `worker`
 }

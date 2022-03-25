@@ -15,7 +15,7 @@
     "remoteUser": "hpjoshi",
     "sshKey": "~/.ssh/id_rsa",
     "remoteConfFile": "conf/exp-latency-conf.json",
-    "gitRemote": "https://github.com/aerpawops/ap-perfmon.git",
+    "gitRemote": "git@github.com:aerpawops/ap-perfmon.git",
     "gitMasterDir": "/home/hpjoshi/nsdi23/ap-perfmon",
     "gitDir": "/home/hpjoshi/nsdi23/ap-perfmon"
 }
