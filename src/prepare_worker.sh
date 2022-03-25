@@ -8,7 +8,7 @@
 if [ "$#" -lt 2 ]
 then
     echo "Error: Usage: "
-    echo "$0 <path to git repo parent dir> <gir repo dir name> [git remote url]"
+    echo "$0 <path to git repo parent dir> <gir repo dir name> [git ssh key] [git remote url]"
     exit 1
 fi
 
@@ -18,7 +18,15 @@ GIT_FULLPATH="${GIT_ROOT}/${GIT_BASE}"
 
 if [ "$#" -ge 3 ]
 then
-    GIT_REMOTE="$3"
+    GIT_SSH_KEY="$3"
+    GIT_SSH_COMMAND="ssh -i $GIT_SSH_KEY -o IdentitiesOnly=yes"
+else
+    GIT_SSH_COMMAND=""
+fi
+
+if [ "$#" -ge 4 ]
+then
+    GIT_REMOTE="$4"
 else
     GIT_REMOTE="https://github.com/aerpawops/ap-perfmon.git"
 fi
@@ -27,12 +35,12 @@ if [ -d "${GIT_FULLPATH}" ]
 then
     echo "Git repo exists at ${GIT_FULLPATH}. Updating..."
     pushd "${GIT_FULLPATH}"
-    git pull
+    ${GIT_SSH_COMMAND} git pull
     popd
 else
     mkdir -p "${GIT_FULLPATH}"
     echo "Cloning git repo in ${GIT_FULLPATH}"
     pushd "${GIT_ROOT}"
-    git clone "${GIT_REMOTE}" "${GIT_BASE}"
+    ${GIT_SSH_COMMAND} git clone "${GIT_REMOTE}" "${GIT_BASE}"
     popd
 fi

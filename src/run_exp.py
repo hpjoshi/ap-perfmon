@@ -84,7 +84,10 @@ def run_one_remote_exp(remote_ip, config):
     remoteConfFile = config["remoteConfFile"]
     ssh_opts = "-o ConnectTimeout=10 -o StrictHostKeyChecking=no"
     if "sshKey" in config:
-        ssh_opts = ssh_opts + " -i %s" % (config["sshKey"])
+        ssh_key = config["sshKey"]
+        ssh_opts = ssh_opts + " -i %s" % (ssh_key)
+    else:
+        ssh_key = ""
     # prepare each node using local script
     gitmasterdir = config["gitMasterDir"]
     gitbase = os.path.basename(os.path.normpath(gitmasterdir))
@@ -93,9 +96,10 @@ def run_one_remote_exp(remote_ip, config):
         git_remote = config["gitRemote"]
     else:
         git_remote = ""
-    cmd = "ssh %s %s@%s \"bash -s\" < %s/src/prepare_worker.sh %s %s %s" % (ssh_opts, remote_user,
-                                                                            remote_ip, gitmasterdir,
-                                                                            gitroot, gitbase, git_remote)
+    cmd = "ssh %s %s@%s \"bash -s\" < %s/src/prepare_worker.sh %s %s %s %s" % (ssh_opts, remote_user,
+                                                                               remote_ip, gitmasterdir,
+                                                                               gitroot, gitbase,
+                                                                               ssh_key, git_remote)
     ret, output = run_cmd(cmd)
     # in each thread start the experiment locally
     remote_cmd = "%s -l worker %s" % (os.path.join(gitdir, "src/run_exp.py"),
