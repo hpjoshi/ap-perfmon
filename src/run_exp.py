@@ -89,9 +89,13 @@ def run_one_remote_exp(remote_ip, config):
     gitmasterdir = config["gitMasterDir"]
     gitbase = os.path.basename(os.path.normpath(gitmasterdir))
     gitroot = os.path.dirname(os.path.normpath(gitmasterdir))
-    cmd = "ssh %s %s@%s \"bash -s\" < %s/src/prepare_worker.sh %s %s" % (ssh_opts, remote_user,
-                                                                         remote_ip, gitmasterdir,
-                                                                         gitroot, gitbase)
+    if "gitRemote" in config:
+        git_remote = config["gitRemote"]
+    else:
+        git_remote = ""
+    cmd = "ssh %s %s@%s \"bash -s\" < %s/src/prepare_worker.sh %s %s %s" % (ssh_opts, remote_user,
+                                                                            remote_ip, gitmasterdir,
+                                                                            gitroot, gitbase, git_remote)
     ret, output = run_cmd(cmd)
     # in each thread start the experiment locally
     remote_cmd = "%s -l worker %s" % (os.path.join(gitdir, "src/run_exp.py"),

@@ -5,11 +5,23 @@
 # by creating the git repo (if needed) or pulling the latest
 # code.
 
-GIT_REMOTE="https://github.com/hpjoshi/ap-perfmon.git"
+if [ "$#" -lt 2 ]
+then
+    echo "Error: Usage: "
+    echo "$0 <path to git repo parent dir> <gir repo dir name> [git remote url]"
+    exit 1
+fi
 
 GIT_ROOT="$1"
 GIT_BASE="$2"
 GIT_FULLPATH="${GIT_ROOT}/${GIT_BASE}"
+
+if [ "$#" -ge 3 ]
+then
+    GIT_REMOTE="$3"
+else
+    GIT_REMOTE="https://github.com/aerpawops/ap-perfmon.git"
+fi
 
 if [ -d "${GIT_FULLPATH}" ]
 then
