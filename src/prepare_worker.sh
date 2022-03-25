@@ -19,9 +19,9 @@ GIT_FULLPATH="${GIT_ROOT}/${GIT_BASE}"
 if [ "$#" -ge 3 ]
 then
     GIT_SSH_KEY="$3"
-    GIT_SSH_COMMAND="ssh -i $GIT_SSH_KEY -o IdentitiesOnly=yes"
+    GIT_SSH_CMD="ssh -i $GIT_SSH_KEY -o IdentitiesOnly=yes"
 else
-    GIT_SSH_COMMAND=""
+    GIT_SSH_CMD=""
 fi
 
 if [ "$#" -ge 4 ]
@@ -35,12 +35,12 @@ if [ -d "${GIT_FULLPATH}" ]
 then
     echo "Git repo exists at ${GIT_FULLPATH}. Updating..."
     pushd "${GIT_FULLPATH}"
-    ${GIT_SSH_COMMAND} git pull
+    GIT_SSH_COMMAND=${GIT_SSH_CMD} git pull
     popd
 else
     mkdir -p "${GIT_FULLPATH}"
     echo "Cloning git repo in ${GIT_FULLPATH}"
     pushd "${GIT_ROOT}"
-    ${GIT_SSH_COMMAND} git clone "${GIT_REMOTE}" "${GIT_BASE}"
+    GIT_SSH_COMMAND=${GIT_SSH_CMD} git clone "${GIT_REMOTE}" "${GIT_BASE}"
     popd
 fi
