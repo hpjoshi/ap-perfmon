@@ -64,9 +64,13 @@ def init_logging(logfile, verbose):
     return logger
 
 
-def sync_from_client(remote_user, remote_ip, remote_dir, local_dir):
-    cmd = "timeout %d rsync -az %s@%s:%s %s" % (30, remote_user,
-                                                remote_ip, remote_dir, local_dir)
+def sync_from_client(remote_user, remote_ip, remote_dir, local_dir, ssh_key=None):
+    if (ssh_key is None) or (ssh_key == ""):
+        ssh_opt = ""
+    else:
+        ssh_opt = " -e \"ssh -i %s\"" % (ssh_key)
+    cmd = "timeout %d rsync -az %s %s@%s:%s %s" % (30, ssh_opt, remote_user,
+                                                   remote_ip, remote_dir, local_dir)
     ret, output = run_cmd(cmd)
     logger.debug(output)
     if ret == 0:
@@ -112,7 +116,7 @@ def run_one_remote_exp(remote_ip, config):
     # at the end sync remote logs and results to the master
     local_logdir = get_logdir(config, "master")
     remote_dir = get_logdir(config, "worker")
-    sync_from_client(remote_user, remote_ip, remote_dir, local_logdir)
+    sync_from_client(remote_user, remote_ip, remote_dir, local_logdir, ssh_key)
     return 0
 
 
