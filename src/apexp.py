@@ -18,7 +18,7 @@ class expruntime:
     This will be used to measure the runtimes for experiment provisioning scripts.
     """
     def __init__(self, expid, csvfile, commands, nruns=1,
-                 runinterval=1, config=None):
+                 runinterval=0, config=None):
         self.expid = expid
         self.csvfile = csvfile
         self.commands = commands
@@ -49,7 +49,7 @@ class expruntime:
                     elapsed_time = end_time - start_time
                     logger.info("Completed command in %d seconds" % (elapsed_time))
                     # update results
-                    results = {'expid': self.expid, 'hostname': hostname, 'command': cmd,
+                    results = {'expid': self.expid, 'hostname': hostname, 'command': '"' + cmd + '"',
                                'runid': run, 'runinterval': self.runinterval,
                                'elapsed_time': elapsed_time}
                     self.reswriter.writerow(results)
@@ -145,7 +145,7 @@ class experiment:
     collection framework.
     """
     def __init__(self, expid, logdir, config, csvfile, exptype="latency",
-                 nruns=30, runinterval=5, verbose="INFO"):
+                 nruns=30, runinterval=0, verbose="INFO"):
         self.expid = expid
         self.exptype = exptype
         self.nruns = nruns
